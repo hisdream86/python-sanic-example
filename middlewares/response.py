@@ -1,28 +1,27 @@
 import json
 
+from functools import wraps
 from sanic.compat import Header
 from sanic.request import Request
 from sanic.response import HTTPResponse
 from typing import Dict, Optional, Union
 from utils import logger
 
-__DISABLE_BODY_LOG_ROUTES = [
-    "swagger",
-]
+
+def log_response_body(enabled: bool = True):
+    def decorator(f):
+        @wraps(f)
+        async def decorated(request: Request, *args, **kwargs):
+            request.ctx.log_response_body = enabled
+            return f(request, *args, **kwargs)
+
+        return decorated
+
+    return decorator
 
 
-async def handle_response(request: Request, response: HTTPResponse):
-    # For ignore non-http requests
-    if hasattr(request.ctx, "ping"):
-        return
-
-    write_body = True
-    for route in __DISABLE_BODY_LOG_ROUTES:
-        if request.route and request.route.path.startswith(route):
-            write_body = False
-            break
-
-    logger.response(request, response, write_body)
+async def default_response_middleware(request: Request, response: HTTPResponse):
+    logger.response(request, response, hasattr(request.ctx, "log_response_body") and request.ctx.log_response_body)
 
 
 class APIResponse(HTTPResponse):

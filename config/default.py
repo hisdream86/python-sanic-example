@@ -19,10 +19,11 @@ class BaseConfig:
     APP_VERSION = app_version()
     HOST = "0.0.0.0"
     PORT = 80
+    ACCESS_LOG = False
     DEBUG = False
     NUM_WORKERS = max(int(multiprocessing.cpu_count()), 2)
     AUTO_RELOAD = True
-    LOGGING_CONFIG = {
+    LOG_CONFIG = {
         "version": 1,
         "disable_existing_loggers": True,
         "loggers": {

@@ -1,6 +1,5 @@
-from .request_handler import handle_request
-from .response_handler import APIResponse, PagedAPIResponse, handle_response
+from .request import default_request_middleware
+from .response import default_response_middleware, APIResponse, PagedAPIResponse
 from .error_handler import handle_error
-from .cors import cors
 
-__all__ = [handle_request, handle_response, handle_error, cors, APIResponse, PagedAPIResponse]
+__all__ = [default_request_middleware, default_response_middleware, APIResponse, PagedAPIResponse, handle_error]
