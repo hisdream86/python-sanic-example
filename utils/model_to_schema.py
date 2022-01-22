@@ -37,6 +37,7 @@ def _to_schema(definition_stack: List[str], schema_def: Dict[str, Any], definiti
                 _to_schema(
                     definition_stack=definition_stack + [definition],
                     schema_def={**definitions.get(definition)},
+                    # schema_def={**definitions.get(definition), "required": schema_def.get("required", False)},
                     definitions=definitions,
                 )
                 if definition not in definition_stack
@@ -46,26 +47,33 @@ def _to_schema(definition_stack: List[str], schema_def: Dict[str, Any], definiti
         elif anyof_spec := schema_def.get("anyOf"):  # Union
             anyof = []
             for any in anyof_spec:
-                definition = any["$ref"].split("/")[-1]
-                anyof.append(
-                    _to_schema(
-                        definition_stack=definition_stack + [definition],
-                        schema_def=definitions.get(definition),
-                        definitions=definitions,
-                    )
-                    if definition not in definition_stack
-                    else anyof.append(
-                        openapi.Object(
-                            title=definition, description=schema_def.get("description", definition), properties={}
+                if any.get("type"):
+                    schema_type_obj = Schema(**{"type": any.get("type"), "description": any.get("description")})
+                    anyof.append(schema_type_obj)
+                else:
+                    definition = any["$ref"].split("/")[-1]
+                    anyof.append(
+                        _to_schema(
+                            definition_stack=definition_stack + [definition],
+                            schema_def=definitions.get(definition),
+                            definitions=definitions,
+                        )
+                        if definition not in definition_stack
+                        else anyof.append(
+                            openapi.Object(
+                                title=definition, description=schema_def.get("description", definition), properties={}
+                            )
                         )
                     )
-                )
             schema = Schema(anyOf=anyof)
-        else:  # $ref
+        elif schema_def.get("$ref"):  # $ref
             definition = schema_def.get("$ref").split("/")[-1]
             schema = _to_schema(
                 definition_stack=definition_stack, schema_def=definitions.get(definition), definitions=definitions
             )
+        else:  # Any type
+            schema = Schema(**{"type": "object", "description": schema_def.get("description")})
+
     else:
         schema_spec = {"type": schema_def.get("type"), "description": schema_def.get("description")}
         for spec in _SUPPORTED_ATTRIBUTES:
