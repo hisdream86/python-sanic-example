@@ -7,6 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+aiohttp = "3.8.1"
 sanic = "21.9.3"
 sanic-openapi = "21.6.1"
 pydantic = "1.8.2"

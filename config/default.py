@@ -18,7 +18,7 @@ class BaseConfig:
     APP_NAME = app_name()
     APP_VERSION = app_version()
     HOST = "0.0.0.0"
-    PORT = 80
+    PORT = 8080
     ACCESS_LOG = False
     DEBUG = False
     NUM_WORKERS = max(int(multiprocessing.cpu_count()), 2)
