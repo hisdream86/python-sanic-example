@@ -12,7 +12,12 @@ class HTTPBaseClientResponse:
         self.body_data = body_data
 
     def json(self) -> dict:
-        return json.loads(self.body_data.decode("utf-8"))
+        try:
+            if not self._json:
+                self._json = json.loads(self.body_data.decode("utf-8"))
+            return self._json
+        except json.JSONDecodeError:
+            raise Exception(f"Response is not a valid json format: {self.status} {self.text()}")
 
     def text(self) -> str:
         return self.body_data.decode("utf-8")
@@ -56,7 +61,7 @@ class HTTPBaseClient:
                         connect=self._connect_timeout,
                         sock_connect=self._socket_timeout,
                         total=timeout,
-                    )
+                    ),
                 ) as response:
                     return HTTPBaseClientResponse(
                         status=response.status,
