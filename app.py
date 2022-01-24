@@ -1,3 +1,5 @@
+import os
+
 from sanic import Sanic
 from sanic_openapi import openapi3_blueprint
 from uvloop import Loop
@@ -29,7 +31,8 @@ class App(Sanic):
     def setup_listeners(self):
         self.register_listener(_listener_init, _SANIC_LISTENER_BEFORE_SERVER_START)
         self.register_listener(_listener_finish, _SANIC_LISTENER_BEFORE_SERVER_STOP)
-        self.register_listener(setup_options, _SANIC_LISTENER_BEFORE_SERVER_START)
+        if not os.getenv("PYTEST_CURRENT_TEST"):
+            self.register_listener(setup_options, _SANIC_LISTENER_BEFORE_SERVER_START)
 
     def setup_middlewares(self):
         self.register_middleware(default_request_middleware, _SANIC_MIDDLEWARE_REQUEST)

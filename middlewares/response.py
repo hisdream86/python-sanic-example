@@ -27,7 +27,7 @@ async def default_response_middleware(request: Request, response: HTTPResponse):
 class APIResponse(HTTPResponse):
     def __init__(self, data: dict = None, headers: Optional[Union[Header, Dict[str, str]]] = None):
         response = {
-            "code": 2001,
+            "code": 2000,
             **({"data": data} if data is not None else {}),
         }
 
