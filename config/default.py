@@ -64,10 +64,10 @@ class BaseConfig:
             }
         },
     }
-    PG_HOST = os.environ.get("DATABASE_HOST")
-    PG_USER = os.environ.get("DATABASE_USER")
-    PG_PASSWORD = os.environ.get("DATABASE_PASSWORD")
-    PG_PORT = 5432
-    PG_POOL_SIZE = 10
-    PG_POOL_MAX_OVERFLOW = 10
+    PG_HOST = os.environ.get("PG_HOST")
+    PG_PORT = os.environ.get("PG_PASSWORD", 5432)
+    PG_USER = os.environ.get("PG_USER")
+    PG_PASSWORD = os.environ.get("PG_PASSWORD")
+    PG_POOL_SIZE = PG_POOL_SIZE = int(multiprocessing.cpu_count()) * 2
+    PG_POOL_MAX_OVERFLOW = int(multiprocessing.cpu_count())
     PG_DEBUG = False
