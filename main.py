@@ -1,12 +1,11 @@
-from app import create_app
-from configs import config
+from app import App
+from config import config
 
 if __name__ == "__main__":
-    app = create_app()
-    app.run(
+    App().run(
+        access_log=config.ACCESS_LOG,
+        auto_reload=config.AUTO_RELOAD,
         host=config.HOST,
         port=config.PORT,
         workers=config.NUM_WORKERS,
-        auto_reload=config.AUTO_RELOAD,
-        access_log=False,
     )

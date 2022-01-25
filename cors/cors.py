@@ -5,7 +5,7 @@ from sanic.request import Request
 from sanic.response import empty, HTTPResponse
 from sanic.router import Route
 
-from configs import config
+from config import config
 
 
 def _compile_routes_needing_options(routes: Dict[str, Route]) -> Dict[str, FrozenSet]:
@@ -26,7 +26,7 @@ def _options_wrapper(handler: Callable, methods: Iterable[str]):
     return wrapped_handler
 
 
-async def options_handler(request: Request, methods: Iterable[str]) -> HTTPResponse:
+async def _options_handler(request: Request, methods: Iterable[str]) -> HTTPResponse:
     response = empty()
 
     allow_methods = list(set(methods))
@@ -51,5 +51,17 @@ def setup_options(app: Sanic, _):
     app.router.reset()
     needs_options = _compile_routes_needing_options(app.router.routes)
     for uri, methods in needs_options.items():
-        app.add_route(_options_wrapper(options_handler, methods), uri, methods=["OPTIONS"])
+        app.add_route(_options_wrapper(_options_handler, methods), uri, methods=["OPTIONS"])
     app.router.finalize()
+
+
+def cors(request: Request, response: HTTPResponse):
+    if request.method == "OPTIONS":
+        return
+
+    if (origin := request.headers.get("origin")) in config.ALLOWED_ORIGINS:
+        headers = {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        }
+        response.headers.extend(headers)

@@ -12,7 +12,12 @@ class HTTPBaseClientResponse:
         self.body_data = body_data
 
     def json(self) -> dict:
-        return json.loads(self.body_data.decode("utf-8"))
+        try:
+            if not self._json:
+                self._json = json.loads(self.body_data.decode("utf-8"))
+            return self._json
+        except json.JSONDecodeError:
+            raise Exception(f"Response is not a valid json format: {self.status} {self.text()}")
 
     def text(self) -> str:
         return self.body_data.decode("utf-8")
@@ -20,11 +25,11 @@ class HTTPBaseClientResponse:
 
 class HTTPBaseClient:
     @classmethod
-    def create_session(cls, loop):
-        cls.__session = aiohttp.ClientSession(loop=loop)
+    def create_session(cls, *args, **kwargs):
+        cls.__session = aiohttp.ClientSession()
 
     @classmethod
-    async def close_session(cls, loop):
+    async def close_session(cls, *args, **kwargs):
         await cls.__session.close()
 
     def __init__(
@@ -44,10 +49,11 @@ class HTTPBaseClient:
     async def request(self, method: str, url: str, **kwargs: Any) -> HTTPBaseClientResponse:
         timeout = self._timeout
         error = None
+        session = self.__session if hasattr(self, "_HTTPBaseClient__session") else aiohttp.ClientSession()
 
         for _ in range(self._retry + 1):
             try:
-                async with self.__session.request(
+                async with session.request(
                     method=method,
                     url=url,
                     **kwargs,
@@ -55,7 +61,7 @@ class HTTPBaseClient:
                         connect=self._connect_timeout,
                         sock_connect=self._socket_timeout,
                         total=timeout,
-                    )
+                    ),
                 ) as response:
                     return HTTPBaseClientResponse(
                         status=response.status,

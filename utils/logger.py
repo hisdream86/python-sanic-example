@@ -1,15 +1,13 @@
 import time
-import json
+import ujson as json
 import traceback
 
+from json import JSONDecodeError
 from datetime import datetime
-from pytz import timezone
 from sanic.log import logger
 from sanic.request import Request
 from sanic.response import HTTPResponse
-from configs import config
-
-TZ_SEOUL = timezone("Asia/Seoul")
+from config import config
 
 
 class Log:
@@ -17,10 +15,10 @@ class Log:
         self.app = config.APP_NAME
         self.level = level
         self.type = type
-        self.datetime = datetime.now(TZ_SEOUL).isoformat("T")
+        self.timestamp = int(datetime.now().timestamp() * 1000)
 
     def format(self) -> str:
-        return json.dumps(self.__dict__, ensure_ascii=False)
+        return json.dumps(self.__dict__, ensure_ascii=False, escape_forward_slashes=False)
 
 
 class RequestLog(Log):
@@ -29,12 +27,12 @@ class RequestLog(Log):
         self.request_id = request.ctx.request_id
         self.method = request.method
         self.url = request.path
-        self.datetime = datetime.fromtimestamp(request.ctx.start, TZ_SEOUL).isoformat("T")
+        self.timestamp = int(datetime.now().timestamp() * 1000)
         self.headers = dict(request.headers)
 
 
 class ResponseLog(Log):
-    def __init__(self, request: Request, response: HTTPResponse, write_body=True):
+    def __init__(self, request: Request, response: HTTPResponse, write_body):
         super().__init__("info", "response")
         self.request_id = request.ctx.request_id
         self.status = response.status
@@ -42,7 +40,7 @@ class ResponseLog(Log):
         if response.body and write_body:
             try:
                 self.data = json.loads(response.body)
-            except json.decoder.JSONDecodeError:
+            except JSONDecodeError:
                 self.data = response.body.decode("utf-8")
 
         self.latency = (time.time() - request.ctx.start) * 1000
@@ -65,7 +63,7 @@ def request(request: Request):
     logger.info(RequestLog(request).format())
 
 
-def response(request: Request, response: HTTPResponse, write_body=True):
+def response(request: Request, response: HTTPResponse, write_body=False):
     logger.info(ResponseLog(request, response, write_body).format())
 
 
