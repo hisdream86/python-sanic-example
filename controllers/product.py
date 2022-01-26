@@ -1,4 +1,4 @@
-from sqlalchemy import select, update
+from sqlalchemy import select
 from models import Product
 from database import Database
 from database.orm import ProductOrm
