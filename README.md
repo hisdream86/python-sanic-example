@@ -16,6 +16,10 @@ poetry config virtualenvs.in-project true
 $ poetry update
 ```
 
+### Setup
+
+#### (1) abab
+
 ### Run
 ```
 $ source .venv/bin/activate

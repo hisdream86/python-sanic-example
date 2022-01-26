@@ -65,7 +65,7 @@ class BaseConfig:
         },
     }
     PG_HOST = os.environ.get("PG_HOST")
-    PG_PORT = os.environ.get("PG_PASSWORD", 5432)
+    PG_PORT = os.environ.get("PG_PORT", 5432)
     PG_USER = os.environ.get("PG_USER")
     PG_PASSWORD = os.environ.get("PG_PASSWORD")
     PG_POOL_SIZE = PG_POOL_SIZE = int(multiprocessing.cpu_count()) * 2
