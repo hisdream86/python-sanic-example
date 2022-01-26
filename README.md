@@ -3,22 +3,20 @@ Example Web API application using [Python Sanic](https://github.com/sanic-org/sa
 
 ## How to run
 
-### [Install poetry](https://python-poetry.org/docs/)
+### 1. [Install poetry](https://python-poetry.org/docs/)
 
 ```sh
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 poetry config virtualenvs.in-project true
 ```
 
-### Create a virtual environment and install dependencies
+### 2. Create a virtual environment and install dependencies
 
 ```sh
 $ poetry update
 ```
 
-## How to Run
-
-### 1. Set environment variables
+### 3. Set environment variables
 Set environment variables for integrating your database
 
 - `PG_HOST`: Postgres hostname
@@ -37,7 +35,7 @@ $ export PG_USER='sanic_example'
 $ export PG_PASSWORD='sanic_example'
 ```
 
-### 2. Initialize your database
+### 4. Initialize your database
 Create `product` table using [alembic](https://alembic.sqlalchemy.org/en/latest/)
 
 > You can find initial version of migration file at `alembic/versions/0000_init_products.py`
@@ -46,7 +44,7 @@ Create `product` table using [alembic](https://alembic.sqlalchemy.org/en/latest/
 $ alembic upgrade head
 ```
 
-### 3. Run application
+### 5. Run application
 You can run application with simple command below
 ```
 $ source .venv/bin/activate
