@@ -1,5 +1,8 @@
+from sqlalchemy import select, update
 from models import Product
-from errors import BadRequest, NotFound
+from database import Database
+from database.orm import ProductOrm
+from errors import NotFound
 from typing import Dict, List
 
 _PRODUCT_DB: Dict[str, Product] = {}
@@ -7,34 +10,53 @@ _PRODUCT_DB: Dict[str, Product] = {}
 
 class ProductController:
     async def create_product(self, name: str = None, price: int = None, description: str = None, **kwargs) -> Product:
-        product = Product(name=name, price=price, description=description)
-        if _PRODUCT_DB.get(product.name):
-            raise BadRequest(f"Product {product.name} is already registered")
-        _PRODUCT_DB[name] = product
-        return _PRODUCT_DB[name]
+        async with Database().async_session() as session:
+            product = ProductOrm(name=name, price=price, description=description)
+            async with session.begin():
+                session.add(product)
+
+            await session.refresh(product)
+
+            return Product(**product.__dict__)
 
     async def list_products(self) -> List[Product]:
-        return [product for product in _PRODUCT_DB.values()]
+        async with Database().async_session() as session:
+            stmt = select(ProductOrm).order_by(ProductOrm.created_at)
+            products = (await session.execute(stmt)).scalars().all()
+            return [Product(**product.__dict__) for product in products]
 
     async def get_product(self, name: str) -> Product:
-        product = _PRODUCT_DB.get(name)
-        if not product:
-            raise NotFound()
-        return product
+        async with Database().async_session() as session:
+            product = (
+                await session.execute(select(ProductOrm).filter_by(name=name).order_by(ProductOrm.created_at))
+            ).scalar()
+
+            return Product(**product.__dict__)
 
     async def update_product(self, name: str, price: int = None, description: str = None, **kwargs) -> Product:
-        product = self.get_product(name)
+        async with Database().async_session() as session:
+            async with session.begin():
+                stmt = select(ProductOrm).where(ProductOrm.name == name)
+                product = (await session.execute(stmt)).scalar()
 
-        if price is not None:
-            product.price = price
+                if not product:
+                    raise NotFound(f"Product '{name}' does not exist")
 
-        if description is not None:
-            product.description = description
+                product.price = price if price is not None else product.price
+                product.description = description if description is not None else product.description
+                session.add(product)
 
-        return product
+            await session.refresh(product)
+
+            return Product(**product.__dict__)
 
     async def delete_product(self, name: str) -> None:
-        if _PRODUCT_DB.get(name):
-            del _PRODUCT_DB[name]
-        else:
-            raise NotFound()
+        async with Database().async_session() as session:
+            async with session.begin():
+                stmt = select(ProductOrm).where(ProductOrm.name == name)
+                product = (await session.execute(stmt)).scalar()
+
+                if not product:
+                    raise NotFound(f"Product '{name}' does not exist")
+
+                await session.delete(product)

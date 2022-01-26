@@ -43,7 +43,7 @@ class App(Sanic):
     def setup_routes(self):
         self.add_route(ping.PingView.as_view(), "/")
         self.add_route(product.ProductsView.as_view(), "/api/v1/products")
-        self.add_route(product.ProductsView.as_view(), "/api/v1/products/<product_name>")
+        self.add_route(product.ProductView.as_view(), "/api/v1/products/<product_name>")
 
 
 async def _listener_init(app: Sanic, loop: Loop) -> None:
