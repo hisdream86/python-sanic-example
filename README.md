@@ -1,5 +1,5 @@
 # python-sanic-example
-Example python apllication with sanic framework
+Example Web API application using [Python Sanic](https://github.com/sanic-org/sanic) 
 
 ## How to run
 
