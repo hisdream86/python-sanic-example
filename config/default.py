@@ -21,7 +21,7 @@ class BaseConfig:
     PORT = 8080
     ACCESS_LOG = False
     DEBUG = False
-    NUM_WORKERS = max(int(multiprocessing.cpu_count()), 2)
+    NUM_WORKERS = 1
     AUTO_RELOAD = True
     LOG_CONFIG = {
         "version": 1,
@@ -66,8 +66,11 @@ class BaseConfig:
     }
     PG_HOST = os.environ.get("PG_HOST")
     PG_PORT = os.environ.get("PG_PORT", 5432)
+    PG_DATABASE = os.environ.get("PG_DATABASE")
     PG_USER = os.environ.get("PG_USER")
     PG_PASSWORD = os.environ.get("PG_PASSWORD")
-    PG_POOL_SIZE = PG_POOL_SIZE = int(multiprocessing.cpu_count()) * 2
+    PG_CONN_URL = f"postgresql://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DATABASE}"
+    PG_ASYNC_CONN_URL = f"postgresql+asyncpg://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DATABASE}"
+    PG_POOL_SIZE = int(multiprocessing.cpu_count()) * 2
     PG_POOL_MAX_OVERFLOW = int(multiprocessing.cpu_count())
     PG_DEBUG = False
