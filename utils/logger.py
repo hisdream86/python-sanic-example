@@ -57,6 +57,8 @@ class ErrorLog(Log):
         super().__init__("error", "error")
         self.message = message
         self.stacktrace = traceback.format_exc() if exception else None
+        if config.DEBUG:
+            traceback.print_exc()
 
 
 def request(request: Request):

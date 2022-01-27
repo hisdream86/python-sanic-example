@@ -4,6 +4,7 @@ from sanic import Sanic
 from sanic_openapi import openapi3_blueprint
 from uvloop import Loop
 from clients import HTTPBaseClient
+from database import Database
 from cors import cors, setup_options
 from config import config
 from middlewares import default_request_middleware, default_response_middleware, handle_error
@@ -48,7 +49,9 @@ class App(Sanic):
 
 async def _listener_init(app: Sanic, loop: Loop) -> None:
     HTTPBaseClient.create_session()
+    Database.init_engine()
 
 
 async def _listener_finish(app: Sanic, loop: Loop) -> None:
     await HTTPBaseClient.close_session()
+    await Database.close_engine()
