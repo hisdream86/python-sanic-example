@@ -1,19 +1,24 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from models import Product
+from errors import BadRequest
 from database import Database
+from database.exceptions import DatabaseError
 from database.orm import ProductOrm
 from errors import NotFound
-from typing import Dict, List
-
-_PRODUCT_DB: Dict[str, Product] = {}
+from typing import List
 
 
 class ProductController:
     async def create_product(self, name: str = None, price: int = None, description: str = None, **kwargs) -> Product:
         async with Database().async_session() as session:
             product = ProductOrm(name=name, price=price, description=description)
-            async with session.begin():
-                session.add(product)
+            try:
+                async with session.begin():
+                    session.add(product)
+            except IntegrityError as e:
+                if DatabaseError(e).is_unique_violation():
+                    raise BadRequest(f"Product '{name}' already exist")
 
             await session.refresh(product)
 
