@@ -2,8 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from models import Product
 from errors import BadRequest
-from database import Database
-from database.exceptions import DatabaseError
+from database import Database, dberror
 from database.orm import ProductOrm
 from errors import NotFound
 from typing import List
@@ -17,7 +16,7 @@ class ProductController:
                 async with session.begin():
                     session.add(product)
             except IntegrityError as e:
-                if DatabaseError(e).is_unique_violation():
+                if dberror.is_unique_violation(e):
                     raise BadRequest(f"Product '{name}' already exist")
 
             await session.refresh(product)
