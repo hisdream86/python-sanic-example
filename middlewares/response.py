@@ -13,7 +13,7 @@ def log_response_body(enabled: bool = True):
         @wraps(f)
         async def decorated(request: Request, *args, **kwargs):
             request.ctx.log_response_body = enabled
-            return f(request, *args, **kwargs)
+            return await f(request, *args, **kwargs)
 
         return decorated
 
