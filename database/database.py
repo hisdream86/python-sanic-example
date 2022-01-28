@@ -1,6 +1,13 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from config import config
+from utils.strenum import StrEnum
+
+
+class IsolationLevel(StrEnum):
+    READ_COMMITTED = "READ COMMITTED"
+    REPEATABLE_READ = "REPEATABLE READ"
+    SERIALIZABLE = "SERIALIZABLE"
 
 
 class Database:
@@ -36,5 +43,8 @@ class Database:
             await cls.__engine.dispose()
 
     @classmethod
-    def async_session(cls, expire_on_commit=False) -> AsyncSession:
-        return sessionmaker(bind=cls.__engine, class_=AsyncSession, expire_on_commit=expire_on_commit)()
+    def async_session(
+        cls, expire_on_commit: bool = False, isolation_level: IsolationLevel = IsolationLevel.READ_COMMITTED
+    ) -> AsyncSession:
+        engine = cls.__engine.execution_options(isolation_level=isolation_level)
+        return sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=expire_on_commit)()
