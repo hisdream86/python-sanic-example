@@ -25,8 +25,10 @@ class ProductsView(HTTPMethodView):
     @openapi.response(200, {"application/json": model_to_schema(ProductListResponse)})
     @openapi.response("OTHERS", {"application/json": model_to_schema(ErrorResponse)})
     async def get(self, request: Request) -> response.HTTPResponse:
-        products = await ProductController().list_products()
-        return APIResponse(data=[product.dict() for product in products])
+        page = int(request.args.get("page", 0))
+        page_size = int(request.args.get("page_size", 10))
+        products = await ProductController().list_products(page, page_size)
+        return APIResponse(data=products.dict())
 
 
 class ProductView(HTTPMethodView):

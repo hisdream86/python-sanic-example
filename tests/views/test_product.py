@@ -24,7 +24,9 @@ def test_product_create(mock_database):
 def test_product_list(mock_database):
     app = App()
 
-    for i in range(5):
+    total_items = 10
+
+    for i in range(total_items):
         app.test_client.post(
             "/api/v1/products",
             json={
@@ -34,15 +36,19 @@ def test_product_list(mock_database):
             },
         )
 
-    _, response = app.test_client.get("api/v1/products")
+    page = 0
+    page_size = 5
+
+    _, response = app.test_client.get(f"api/v1/products?page_size={page_size}&page={page}")
 
     assert response.status == 200
     assert response.json["code"] == 2000
+    assert len(response.json["data"]["items"]) == page_size
 
-    for i in range(5):
-        assert response.json["data"][i]["name"] == f"{_PRODUCT_NAME}-{i}"
-        assert response.json["data"][i]["price"] == _PRODUCT_PRICE + i
-        assert response.json["data"][i]["description"] == f"{_PRODUCT_DESCRIPTION} {i}"
+    for i in range(page_size):
+        assert response.json["data"]["items"][i]["name"] == f"{_PRODUCT_NAME}-{i}"
+        assert response.json["data"]["items"][i]["price"] == _PRODUCT_PRICE + i
+        assert response.json["data"]["items"][i]["description"] == f"{_PRODUCT_DESCRIPTION} {i}"
 
 
 def test_product_put(mock_database):

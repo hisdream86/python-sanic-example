@@ -1,11 +1,10 @@
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
-from models import Product
+from models import Product, PagedProductList
 from errors import BadRequest
 from database import Database, dberror
 from database.orm import ProductOrm
 from errors import NotFound
-from typing import List
 
 
 class ProductController:
@@ -23,11 +22,26 @@ class ProductController:
 
             return Product(**product.__dict__)
 
-    async def list_products(self) -> List[Product]:
+    async def list_products(self, page: int = 0, page_size: int = 10) -> PagedProductList:
         async with Database().async_session() as session:
-            stmt = select(ProductOrm).order_by(ProductOrm.created_at)
-            products = (await session.execute(stmt)).scalars().all()
-            return [Product(**product.__dict__) for product in products]
+            async with session.begin():
+                products = (
+                    (
+                        await session.execute(
+                            select(ProductOrm).order_by(ProductOrm.created_at).limit(page_size).offset(page)
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                total_counts = (await session.execute(select(func.count(ProductOrm.product_id)))).scalar()
+                total_pages = (total_counts // page_size) + 1
+
+            return PagedProductList(
+                items=[Product(**product.__dict__) for product in products],
+                page=page,
+                total_pages=total_pages,
+            )
 
     async def get_product(self, name: str) -> Product:
         async with Database().async_session() as session:

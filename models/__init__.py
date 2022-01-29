@@ -1,5 +1,3 @@
-from .product import Product
+from .product import Product, PagedProductList
 
-__all__ = [
-    Product,
-]
+__all__ = [Product, PagedProductList]
